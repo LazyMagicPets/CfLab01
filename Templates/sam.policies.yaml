@@ -1,0 +1,478 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: | 
+  This stack creates ubiquitous cloudfront policies, functions etc. for tenancies
+Parameters:
+  SystemKey:
+    Description: "System Name"
+    Type: String
+  EnvironmentParameter:
+    Description: "Environment"
+    Type: String
+    Default: "dev"
+    AllowedValues:
+      - dev
+      - test
+      - prod
+  KeyValueStoreArnParameter:
+    Description: "The CloudFront KeyValueStore ARN"
+    Type: String    
+
+Conditions:
+  IsDev: !Equals [!Ref EnvironmentParameter, "dev"]
+
+Resources:
+  # The AuthConfig function is used to return the authentication information 
+  # necessary to connect to the system.
+  AuthConfigFunction:  
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub ${SystemKey}---authconfig
+      AutoPublish: true
+      FunctionConfig:
+        Comment: 'Handle authconfig Requests.'
+        Runtime: cloudfront-js-2.0
+        KeyValueStoreAssociations:
+          - KeyValueStoreARN: !Ref KeyValueStoreArnParameter
+      FunctionCode: |
+        import cf from 'cloudfront';
+        const kvs = cf.kvs(); 
+        async function handler(event) {
+            const request = event.request;
+            const headers = request.headers;
+            let uri = request.uri;  
+            const originalUri = request.uri;
+            const origin = headers.origin && headers.origin.value;
+            const debug = false;
+            const log = true;
+            if(debug) console.log("host: " + host);
+            let config = {
+                meta: {
+                    type: "",
+                    awsRegion: "",
+                    wsUrl: ""
+                },
+                authConfigs: {}
+            };
+            try {
+                const authConfigs = await kvs.get("AuthConfigs");
+                config.authConfigs = JSON.parse(authConfigs);
+
+                return {
+                    statusCode: 200,
+                    statusDescription: "Success",
+                    headers: {
+                        'content-type': { value: 'application/json' }, // Set the content type to application/json
+                        'cache-control': { value: 'max-age=0, no-cache, no-store, must-revalidate' } // Set caching headers to prevent caching
+                    },            
+                    body: JSON.stringify(config, null, 0)
+                }
+
+            } catch (err) {
+                console.log("Error listing KVS entries:", err);
+                return {
+                    statusCode: 500,
+                    statusDescription: 'Internal Server Error'
+                };
+            }
+        }
+
+
+  # The Request function is used to update S3 origins on the fly using
+  # an associated CloudFront KeyValueStore. This function reads kvs  
+  # using the [subdomain.]domain as the key. The value returned 
+  # is a configuration object optimized for size because KVS 
+  # values must be under 1KB in size and we don't want more than 
+  # one kvs access per request.
+  # Each kvs JSON entry has the following form:
+  # { 
+  #     env: "",
+  #     tenantKey: "",
+  #     subtenantKey: "",
+  #     systemKey: "",
+  #     ss: "", // system sufix
+  #     ts: "", // tenant sufix
+  #     sts: "", // subtenant sufix
+  #     region: "",
+  # }
+  # Each Behavior entry is an array of strings. See the AssetType switch 
+  # statement in the function for documentatio of each type of behavior entry.
+  # 
+  RequestFunction:  
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub ${SystemKey}---request
+      AutoPublish: true
+      FunctionConfig:
+        Comment: 'Handle Asset Requests.'
+        Runtime: cloudfront-js-2.0
+        KeyValueStoreAssociations:
+          - KeyValueStoreARN: !Ref KeyValueStoreArnParameter
+      FunctionCode: !Sub |
+        import cf from 'cloudfront';
+        const kvsARN = "${KeyValueStoreArnParameter}";
+        const kvs = cf.kvs(); 
+
+        async function handler(event) {
+            try {
+                const request = event.request;
+                const headers = request.headers;
+                const origin = headers.origin && headers.origin.value;
+                const originalUri = request.uri;
+                const originalDomain = headers.host.value;
+                if(!request.uri) request.uri = '/';
+
+                // Helper function for error responses
+                const err = (code, msg) => ({statusCode: code, statusDescription: code === 404 ? 'Not Found' : 'Error', body: msg});
+
+                // Get config
+                let config = await GetConfig(headers.host.value);
+                const configJson = JSON.stringify(config);  
+
+                // Handle preflight requests
+                if (config.env === 'dev' && request.method === 'OPTIONS' && origin && 
+                    origin.startsWith('http://localhost:') && headers['access-control-request-method']) {
+                    return {
+                        statusCode: 204,
+                        statusDescription: 'No Content',
+                        headers: {
+                            'access-control-allow-origin': {value: origin},
+                            'access-control-allow-methods': {value: 'GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH'},
+                            'access-control-allow-headers': {value: 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'},
+                            'access-control-max-age': {value: '86400'},
+                            'cache-control': {value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'}
+                        }
+                    };
+                }
+
+                // Set up keys
+                const systemKey = config.systemKey;
+                const tenantKey = config.tenantKey || '';
+                const subtenantKey = config.subtenantKey || '';
+
+                // Find matching behavior
+                let behavior = null;
+                let redirectPath = null;
+                if(config.behaviors) {
+                    // Create flattened behavior reference array with prefixes
+                    const behaviorsRef = [];
+                    config.behaviors.forEach((b, i) => {
+                        const paths = b[0].split(',');
+                        paths.forEach((prefix,p) => {
+                            const redirectPath = (p !== 0 ? paths[0] : null);
+                            behaviorsRef.push([prefix, i, redirectPath]);
+                        });
+                    });
+
+                    // Sort by path length (longest first) and find first match
+                    behaviorsRef.sort((a, b) => b[0].length - a[0].length);
+
+                    for(let i = 0; i < behaviorsRef.length; i++) {
+                        if (request.uri.startsWith(behaviorsRef[i][0])) {
+                            redirectPath = behaviorsRef[i][2];
+                            behavior = config.behaviors[behaviorsRef[i][1]];
+                            break;                
+                        }            
+                    }
+                }   
+
+                if(redirectPath) {
+                    return {
+                        statusCode: 302,
+                        statusDescription: 'Found',
+                        headers: {location: {value: redirectPath}}
+                    };
+                }
+
+                if(!behavior) return err(404, 'No path match');
+
+                // Process behavior
+                const assetType = behavior[1];
+                const awsSuffix = '.amazonaws.com';
+                let originPath = "";
+                let removePrefix = false;
+                let addCacheHeader = false;
+                let assetName = "";
+
+                switch(assetType) {
+                    case "api":
+                        assetName = behavior[2] + '.execute-api.' + behavior[3] + awsSuffix;
+                        removePrefix = true;
+                        originPath = "/" + config.env;
+                        headers['lz-config'] = {value: configJson};
+                        headers['lz-tenantid'] = {value: headers.host.value}; 
+                        const authheader = headers['authorization'] && headers['authorization'].value;
+                        if(authheader && authheader.startsWith('AWS4-HMAC-SHA256 Credential=')) {
+                            headers['lz-config-authorization'] = {value: authheader};
+                        }
+                        headers['lz-aws-kvsarn'] = {value: kvsARN};
+                        break;
+                    case "assets":
+                        const behaviorLevel = behavior[4];
+                        const assetTenantKey = behaviorLevel > 0 ? tenantKey : '';
+                        const assetSubtenantKey = behaviorLevel > 1 ? subtenantKey : '';
+                        assetName = systemKey + '-' + assetTenantKey + '-' + assetSubtenantKey + '-' + assetType + '-' + behavior[2] + '.s3.' + behavior[3] + awsSuffix;
+                        removePrefix = true;
+                        addCacheHeader = true;
+                        break;
+                    case "webapp":
+                        const webLevel = behavior[4];
+                        const webTenantKey = webLevel > 0 ? tenantKey : '';
+                        const webSubtenantKey = webLevel > 1 ? subtenantKey : '';
+                        assetName = systemKey + '-' + webTenantKey + '-' + webSubtenantKey + '-' + assetType + '-' + behavior[2] + '-' + behavior[3] + '.s3.' + behavior[4] + awsSuffix;
+                        removePrefix = true;
+                        addCacheHeader = true;
+                        originPath = "/wwwroot";
+                        break;
+                }
+
+                // Perform replacements in assetName
+                assetName = assetName
+                    .replaceAll('{sts}', config.sts)
+                    .replaceAll('{ts}', config.ts)
+                    .replaceAll('{ss}', config.ss);
+
+                if (assetName.includes('{')) return err(404, 'Bad Config behavior entry');
+
+                // Handle webapp Page URLs
+                if (assetType == 'webapp' && request.uri.endsWith("Page")) {
+                    request.uri = request.uri.substring(0, request.uri.lastIndexOf('/'));
+                }
+
+                if(removePrefix) {
+                    const secondSlash = request.uri.indexOf('/', 1); 
+                    request.uri = secondSlash > 0 ? request.uri.slice(secondSlash) : '/';
+                }
+
+                const cacheKeyValue = assetName + '-' + originPath + '-' + request.uri;
+                if(addCacheHeader) {
+                    headers['x-custom-cache-key'] = {value: cacheKeyValue};
+                }
+        
+
+                if(request.uri === '/') {
+                    headers['referrer'] = {value: originalDomain + '/sets'};
+                }
+
+
+                // console.log("request: " + originalDomain + originalUri + ", redirect: " + assetName + originPath + request.uri + " cachekey: " + cacheKeyValue);
+
+                cf.updateRequestOrigin({
+                    "domainName": assetName,
+                    "originPath": originPath
+                });
+
+                return request;
+            } catch (e) {
+                console.log('Unhandled error: ' + (e.message || e));
+                return {statusCode: 500, statusDescription: 'Error', body: 'Internal Server Error'};
+            }
+
+            async function GetConfig(host) {
+                try {
+                    const configJson = await kvs.get(host);
+                    if (!configJson) throw Error("Missing Config");
+                    let config = JSON.parse(configJson);
+                    if (!config || (!config.behaviors && !config.redirecthost)) throw new Error("Bad Config");
+                    return config;
+                } catch (e) {
+                    console.log(e.message);
+                    throw e;
+                }        
+            }
+        }
+
+
+
+  CloudFrontFunctionLoggingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub ${SystemKey}-CloudFrontFunctionLogging
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:us-east-1:${AWS::AccountId}:log-group:/aws/cloudfront/function/*
+
+  CacheByHeaderDevPolicy:
+    Type: 'AWS::CloudFront::CachePolicy'
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub ${SystemKey}-CacheByHeaderDevPolicy
+        Comment: 'Cache policy using custom x-custom-cache-key header'
+        DefaultTTL: 1  # use minimum TTL in development
+        MaxTTL: 31536000   # 1 year in seconds
+        MinTTL: 1
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers: 
+              - 'x-custom-cache-key'
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+  CacheByHeaderProdPolicy:
+    Type: 'AWS::CloudFront::CachePolicy'
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub ${SystemKey}-CacheByHeaderProdPolicy
+        Comment: 'Cache policy using custom x-custom-cache-key header'
+        DefaultTTL: 86400  # 1 day in seconds
+        MaxTTL: 31536000   # 1 year in seconds
+        MinTTL: 1
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers: 
+              - 'x-custom-cache-key'
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+  CachingOptimizedDevPolicy:
+    Type: 'AWS::CloudFront::CachePolicy'
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub ${SystemKey}-CachingOptimizedDev
+        Comment: 'Managed policy for optimized caching for dev environment'
+        DefaultTTL: 1  # allows rapid update for development testing
+        MaxTTL: 31536000   # 1 year in seconds
+        MinTTL: 1
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+
+# CloudFront Policies 
+# There are three types of CloudFront policies:
+# - CachePolicy: Determines the cache key and the TTLs for the cacheable content.
+# - OriginRequestPolicy: Determines the headers, query strings, and cookies that are included in requests that CloudFront sends to the origin.
+#       Note that any headers included in the CachePolicy are also passed through to the origin.  
+# - ResponseHeadersPolicy: Determines the headers that CloudFront includes in the response that it returns to the viewer.
+#       Note: The ResponseHeadersPolicy may contain distribution specific content in the CSP, so it is defined in the sam.cloudfront.yaml template.
+# AWS Provides some managed policies that can be used in lieu of creating custom policies. The IDs for these policies don't change and 
+# are provided below.
+#
+# Type: AWS::CloudFront::CachePolicy
+# - 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # Managed-CachingDisabled, recommended for API Gateway
+# - 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
+# - b2884449-e4de-46a7-ac36-70bc7f1ddd6d # Managed-CachingOptimizedForUncompressedObjects
+# - 08627262-05a9-4f76-9ded-b50ca2e3a84f # Managed-Elemental-MediaPackage
+
+# Type: AWS::CloudFront::OriginRequestPolicy
+# - 216adef6-5c7f-47e4-b989-5492eafa07d3 # Managed-AllViewer
+# - 33f36d7e-f396-46d9-90e0-52428a34d9dc # Managed-AllViewerAndCloudFrontHeaders-2022-06
+# - b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader, recommended for API Gateway
+# - 59781a5b-3903-41f3-afcb-af62929ccde1 # Managed-CORS-CustomOrigin
+# - 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf # Managed-CORS-S3Origin
+# - 775133bc-15f2-49f9-abea-afb2e0bf67d2 # Managed-Elemental-MediaTailor-PersonalizedManifests
+# - acba4595-bd28-49b8-b9fe-13317c0390fa # Managed-UserAgentRefererHeaders
+
+  # DevCachePolicy:
+  #   Type: AWS::CloudFront::CachePolicy
+  #   Properties:
+  #     CachePolicyConfig:
+  #       Name: !Sub ${AWS::StackName}-DevCachePlcy-${GuidParameter}
+  #       DefaultTTL: 1
+  #       MaxTTL: 1
+  #       MinTTL: 1
+  #       ParametersInCacheKeyAndForwardedToOrigin: 
+  #         CookiesConfig:
+  #           CookieBehavior:  all
+  #         QueryStringsConfig:
+  #           QueryStringBehavior: all
+  #         EnableAcceptEncodingBrotli: true
+  #         EnableAcceptEncodingGzip: true
+  #         HeadersConfig: 
+  #           HeaderBehavior: whitelist 
+  #           Headers:
+  #           - Authorization 
+  #           - Accept-Charset 
+  #           - Origin
+  #           - Access-Control-Request-Method 
+  #           - Access-Control-Request-Headers 
+  #           - Accept 
+  #           - Referer 
+  #           - Accept-Language 
+  #           - Accept-Datetime
+
+  WebSocketOriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        Name: !Sub ${SystemKey}-WSOrignReqPlcy
+        Comment: "OriginRequestPolciy - Forward necessary headers for WebSocket connections"
+        HeadersConfig:
+          HeaderBehavior: whitelist
+          Headers:
+            - Sec-WebSocket-Key
+            - Sec-WebSocket-Version
+            - Sec-WebSocket-Protocol
+            - Sec-WebSocket-Extensions
+            - Sec-WebSocket-Accept
+            - Host
+            - Origin
+        CookiesConfig:
+          CookieBehavior: none
+        QueryStringsConfig:
+          QueryStringBehavior: all
+
+
+Outputs:
+  CachePolicyId:
+    # Managed-CachingOptimized
+    Value: !If [IsDev, !Ref CachingOptimizedDevPolicy, 658327ea-f89d-4fab-a63d-7e88639e58f6]
+
+  CacheByHeaderPolicyId:
+    Value: !If [IsDev, !Ref CacheByHeaderDevPolicy, !Ref CacheByHeaderProdPolicy]
+
+  OriginRequestPolicyId:
+    # Managed-AllViewerExceptHostHeader
+    Value: b689b0a8-53d0-40ab-baf2-68738e2966ac 
+
+  ApiOriginRequestPolicyId:
+    # Managed-AllViewerExceptHostHeader
+    Value: b689b0a8-53d0-40ab-baf2-68738e2966ac 
+
+  ApiCachePolicyId:
+    # Managed-CachingDisabled
+    Value: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad 
+
+  WebsocketOriginRequestPolicyId:
+    Value: !Ref WebSocketOriginRequestPolicy
+
+  RequestFunctionArn:
+    Value: !GetAtt RequestFunction.FunctionARN
+
+  ApiRequestFunctionArn:
+    Value: !GetAtt RequestFunction.FunctionARN  
+  
+  AuthConfigFunctionArn:
+    Value: !GetAtt AuthConfigFunction.FunctionARN
+
+

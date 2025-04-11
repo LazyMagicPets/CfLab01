@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: | 
+  This stack creates a consumer user pool and 
+  user pool client. This user pool allows users
+  to sign themselves up.
+
+Parameters:
+  SystemKeyParameter:
+    Type: String
+
+  UserPoolNameParameter:
+    Description: "UserPoolName"
+    Type: String
+    Default: "Tenant_UserPool"    
+
+  CallbackURLParameter:
+    Description: "CallbackURL"
+    Type: String
+    Default: "https://www.example.com"
+
+  LogoutURLParameter:
+    Description: "LogoutURL"
+    Type: String
+    Default: "https://www.example.com"
+
+  DeleteAfterDaysParameter:
+    Description: "DeleteAfterDays"
+    Type: Number
+    Default: 60 
+
+  StartWindowMinutesParameter:
+    Description: "StartWindowMinutes"
+    Type: Number
+    Default: 60 
+
+  ScheduleExpressionParameter:
+    Description: "ScheduleExpression"
+    Type: String
+    Default: "cron(0 5 ? * * *)" # Daily at 5 AM UTC
+
+  SecurityLevelParameter:
+    Description: "SecurityLevel"
+    Type: Number
+    Default: 1
+
+Resources:
+  BackupVault:
+    Type: AWS::Backup::BackupVault
+    Properties:
+      BackupVaultName: !Sub ${SystemKeyParameter}---${UserPoolNameParameter}CognitoBackupVault
+
+  BackupPlan:
+    Type: AWS::Backup::BackupPlan
+    Properties:
+      BackupPlan:
+        BackupPlanName: !Sub ${SystemKeyParameter}---${UserPoolNameParameter}CognitoBackupPlan
+        BackupPlanRule:
+          - RuleName: DailyBackups
+            TargetBackupVault: !Ref BackupVault
+            ScheduleExpression: !Ref ScheduleExpressionParameter  
+            StartWindowMinutes: !Ref StartWindowMinutesParameter
+            Lifecycle:
+              DeleteAfterDays: !Ref DeleteAfterDaysParameter
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AliasAttributes:
+      - email
+      - preferred_username
+      UserPoolName: !Ref UserPoolNameParameter
+      AutoVerifiedAttributes:
+      - email
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      AllowedOAuthFlowsUserPoolClient: true
+      SupportedIdentityProviders:
+      - COGNITO
+      GenerateSecret: false
+      AllowedOAuthFlows:
+      - code
+      RefreshTokenValidity: 30
+      AllowedOAuthScopes:
+      - phone
+      - email
+      - openid
+      - aws.cognito.signin.user.admin
+      - profile
+      CallbackURLs:
+      - !Ref CallbackURLParameter
+      LogoutURLs:
+      - !Ref LogoutURLParameter
+
+Outputs:
+  UserPoolId:
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
+  UserPoolArn:
+    Value: !GetAtt UserPool.Arn
+  SecurityLevel:
+    Value: !Ref SecurityLevelParameter  
