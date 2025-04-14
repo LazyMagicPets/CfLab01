@@ -15,7 +15,7 @@ $currentPath = (Get-Location).Path
 # Keep searching until we reach the root
 while ($currentPath -ne "") {
     # Check for direct LzAws folder
-    $directPath = Join-Path $currentPath "LzLab01\CfLab01.psm1"
+    $directPath = Join-Path $currentPath "CfLab01\CfLab01.psm1"
     # Check for LazyMagic/LzAws path
     $nestedPath = Join-Path $currentPath "LazyMagic\CfLab01\CfLab01.psm1"
 
@@ -35,5 +35,5 @@ while ($currentPath -ne "") {
 }
 
 if (-not (Get-Module CfLab01)) {
-    Write-Error "Could not find CfLab module in parent directories"
+    Write-Error "Could not find CfLab01 module in parent directories"
 }
