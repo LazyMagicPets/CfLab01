@@ -5,6 +5,6 @@ function Deploy-CfLab01Test {
         [string]$labprofile 
     )
 
-    Deploy-Many -labprofile $labprofile -Function "Deploy-Test" -Arguments @{yada = "bada"}
+    Deploy-Many -labprofile $labprofile -Function Deploy-Test 
 
 }

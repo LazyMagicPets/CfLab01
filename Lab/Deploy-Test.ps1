@@ -1,10 +1,7 @@
 function Deploy-Test {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$yada
-    )
-    Get-SystemConfig
-    Write-Host "Deploy-Test yada $yada"
-    
+    param()
+        $null = Get-SystemConfig
+        $profileName = $script:ProfileName
+        Write-Host "ProfileName: $profileName"
 }
 

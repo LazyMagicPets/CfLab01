@@ -1,10 +1,10 @@
 [
   {
     "hash": "sha256-992C265EA9AD2A333ADD90F8AE0884BE8D97933899F7DCF8D834D6CBDDE3D7AF",
-    "url": "subtenancy/base/System/config.json"
+    "url": "tenant/base/System/config.json"
   },
   {
-    "hash": "sha256-DDF0523B368B3ECC95942ACCD61000188ACBAF8256C29636CA0C41C0AD1B4770",
-    "url": "subtenancy/base/System/splash.svg"
+    "hash": "sha256-A5FBBDD88B3F6A5D50174979BDFB26FA5338993D273EABE7072EF859CF6D643F",
+    "url": "tenant/base/System/splash.svg"
   }
 ]
