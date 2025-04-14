@@ -72,6 +72,9 @@ Behaviors:
     AppName: "adminapp"
   - Path: "/store/,/store"
     AppName: "storeapp"
+  - Path: "/myapp/,/myapp"
+    AppName: "myapp"
+  
 # Tenants define the tenants in the system.
 # 
 Tenants:
