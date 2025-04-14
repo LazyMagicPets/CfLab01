@@ -123,7 +123,7 @@ Hints:
                     }
                     
                     if (-not $deleted) {
-                        Write-Host "Waiting for table deletion to complete... (attempt $attempt of $maxAttempts)" -ForegroundColor Yellow
+                        Write-Host "Waiting for table deletion to complete... (attempt $attempt)" -ForegroundColor Yellow
                         Start-Sleep -Seconds 10
                     }
                 }

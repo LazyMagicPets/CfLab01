@@ -8,8 +8,13 @@ function Deploy-Many {
         [hashtable]$Arguments = @{}
     )
     $labprofiles = Get-Accounts
+    $accountsConfig = Get-Content -Path "accounts.yaml" -Raw | ConvertFrom-Yaml
     if($labprofile -eq "all") {
        foreach($labprofileItem in $labprofiles) {
+        $accountConfig = $accountsConfig.Accounts[$labprofileItem]
+        if ($accountConfig.exclude -eq $true) {
+            continue
+        }
         Set-SystemConfig -labprofile $labprofileItem
         & $Function @Arguments
        }
@@ -22,4 +27,3 @@ function Deploy-Many {
         & $Function @Arguments
     }
 }
-
