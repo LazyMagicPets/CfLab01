@@ -1,4 +1,13 @@
 Accounts:
+  cflab-00:
+    adminemail: "tmay+cflab-00@inscico.com"
+    systemsuffix: "496a-bd90"
+    systemkey: "lzm"
+    profile: "cflab-00"
+    rootdomain: "cflab00.click"
+    hostedzoneid: "Z0151822M5K3IUHAT7OE"
+    acmcertificatearn: "arn:aws:acm:us-east-1:471303021085:certificate/9844b227-b96d-49fe-a107-49681b27f4f5"
+    exclude: true
   cflab-01:
     adminemail: "tmay+cflab-01@inscico.com"
     systemsuffix: "496a-bd91"

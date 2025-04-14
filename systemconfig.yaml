@@ -11,7 +11,7 @@
 # used in the AWS CloudFormation templates to send a Tenant User Pool
 # invitation to the Administrator user.
 AdminAuth: "TenantAuth" # This is the name of the Authentication to create the Administrator user in
-AdminEmail: "tmay+cflab-02@inscico.com"
+AdminEmail: "tmay+cflab-00@inscico.com"
 
 
 # SystemSuffix is a short random string used to ensure uniqueness of 
@@ -19,7 +19,7 @@ AdminEmail: "tmay+cflab-02@inscico.com"
 # middle section to get a unique SystemSuffix.
 # Needs to be lowercase alphanumeric. Keep it to 9 characters 
 # to avoid generating S3 bucket names that are too long.
-SystemSuffix: "496a-bd92"
+SystemSuffix: "496a-bd90"
 
 # SystemKey is a prefix ensuring AWS resource names are unique
 # within an AWS account when multiple systems are deployed. 
@@ -37,11 +37,11 @@ Environment: 'dev'
 # Profile is the name of the AWS profile used to deploy the system. We recommend 
 # you use use profile names that use a SystemKey-Environment pattern.
 # Profiles generally use AWS SSO to authenticate.
-Profile: "cflab-02"
+Profile: "cflab-00"
 Region: "us-west-2"
 
 # DefaultTenancy is the default tenancy for development
-DefaultTenant: "uptown.cflab02.click"
+DefaultTenant: "uptown.cflab00.click"
 
 # Behaviors 
 # Behaviors define the routing rules for system requests. 
@@ -82,9 +82,9 @@ Tenants:
     # RootDomain, HostedZoneId, and AcmCertificateArn are required for each tenant 
     # and you use the AWS Console to create the hosted zone and certificate. You 
     # may also use the AWS Console to purchase a domain name.
-    RootDomain: "cflab02.click" # Each Tenant has it's own domain. 
-    HostedZoneId: "Z01153791Z6GHERI7ETGE" # Provide the AWS hosted zone id for the tenant domain
-    AcmCertificateArn: "arn:aws:acm:us-east-1:168155203860:certificate/22802e4a-f50a-4a9e-8e73-a18758bd1bbd" # AWS certificate for tenant domain
+    RootDomain: "cflab00.click" # Each Tenant has it's own domain. 
+    HostedZoneId: "Z0151822M5K3IUHAT7OE" # Provide the AWS hosted zone id for the tenant domain
+    AcmCertificateArn: "arn:aws:acm:us-east-1:471303021085:certificate/9844b227-b96d-49fe-a107-49681b27f4f5" # AWS certificate for tenant domain
 
     # Tenant Behaviors define the routing rules for tenant requests. 
     # They have the same properties as the system level behaviors.

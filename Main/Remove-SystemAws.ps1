@@ -34,13 +34,6 @@ function Remove-SystemAws {
         Write-Host "Using profile: $ProfileName" -ForegroundColor Yellow
         Write-Host "Using region: $Region" -ForegroundColor Yellow
 
-        # Confirm deletion
-        $confirmation = Read-Host "Are you sure you want to delete the system stack '$StackName'? This action cannot be undone. (y/n)"
-        if ($confirmation -ne 'y') {
-            Write-Host "Operation cancelled by user." -ForegroundColor Yellow
-            return $false
-        }
-
         # First check if stack exists
         Write-Host "Checking if stack exists..." -ForegroundColor Yellow
         $stackStatus = aws cloudformation describe-stacks `
@@ -68,7 +61,7 @@ function Remove-SystemAws {
 
             # Wait for deletion to complete
             Write-Host "Waiting for stack deletion to complete..." -ForegroundColor Yellow
-            $maxAttempts = 10  # 5 minutes with 30 second intervals
+            $maxAttempts = 3  # 30 seconds with 10 second intervals
             $attempt = 0
             
             while ($attempt -lt $maxAttempts) {
@@ -84,13 +77,13 @@ function Remove-SystemAws {
                     }
                 }
                 
-                Write-Host "Stack deletion in progress... (attempt $($attempt + 1) of $maxAttempts)" -ForegroundColor Yellow
-                Start-Sleep -Seconds 30
+                Write-Host "Stack deletion in progress... (attempt $($attempt + 1))" -ForegroundColor Yellow
+                Start-Sleep -Seconds 10
                 $attempt++
             }
 
             if ($attempt -eq $maxAttempts) {
-                throw "Stack deletion timed out after 5 minutes. Check CloudFormation console for details."
+                throw "Stack deletion timed out after 30 seconds. Check CloudFormation console for details."
             }
         }
 
