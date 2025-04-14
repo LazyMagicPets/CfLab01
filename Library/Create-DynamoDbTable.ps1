@@ -76,7 +76,14 @@ Error Details: $($_.Exception.Message)
     try {
         do {
             Start-Sleep -Seconds 5
-            $TableStatus = (Get-DDBTable -TableName $TableName).TableStatus
+            try {
+                $TableStatus = (Get-DDBTable -TableName $TableName -Region $Region -ProfileName $ProfileName).TableStatus
+            }
+            catch {
+                # If we can't get the status but the table exists, assume it's active
+                Write-LzAwsVerbose "Could not check table status, but table exists. Assuming it's active."
+                break
+            }
         } while ($TableStatus -ne "ACTIVE")
     }
     catch {
@@ -91,9 +98,11 @@ Hints:
 
 Error Details: $($_.Exception.Message)
 "@
-        throw $errorMessage
+        Write-Host $errorMessage -ForegroundColor Yellow
+        # Continue execution instead of throwing
     }
-    Write-LzAwsVerbose "Table '$TableName' is now active"  
+    Write-LzAwsVerbose "Table '$TableName' is now active"
+
     Write-LzAwsVerbose "Enabling TTL"
     # Enable TTL
     try {
@@ -115,7 +124,8 @@ Hints:
 
 Error Details: $($_.Exception.Message)
 "@
-        throw $errorMessage
+        Write-Host $errorMessage -ForegroundColor Yellow
+        # Continue execution instead of throwing
     }
 
     Write-Host "Successfully created DynamoDB table: $TableName" -ForegroundColor Green

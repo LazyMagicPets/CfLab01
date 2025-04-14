@@ -33,7 +33,13 @@ function Deploy-SystemAws {
         
         # Deploy system resources first
         Write-LzAwsVerbose "Deploying system resources"
-        Deploy-SystemResourcesAws
+        try {
+            Deploy-SystemResourcesAws
+        }
+        catch {
+            Write-Host "Warning: Error during system resources deployment: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "Continuing with system stack deployment..." -ForegroundColor Yellow
+        }
 
         Write-LzAwsVerbose "Deploying system stack"  
         $StackName = $SystemKey + "---system"

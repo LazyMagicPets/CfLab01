@@ -1,30 +1,30 @@
 [
   {
-    "hash": "sha256-5986E596E052F242F54BA866B132B1643E01DEED66D8E7C8F8A58AA85C463EED",
-    "url": "system/base/System/config.json"
+    "url": "system/base/System/config.json",
+    "hash": "sha256-5986E596E052F242F54BA866B132B1643E01DEED66D8E7C8F8A58AA85C463EED"
   },
   {
-    "hash": "sha256-4821CD0C2994199828897BBD6D670AB47156553423E63E9168D1E61EFD61ABA3",
-    "url": "system/base/System/favicon.png"
+    "url": "system/base/System/favicon.png",
+    "hash": "sha256-4821CD0C2994199828897BBD6D670AB47156553423E63E9168D1E61EFD61ABA3"
   },
   {
-    "hash": "sha256-86EDBA329848578E3774EC6C4B286960941B43F47E486E324624589DAA0CBA65",
-    "url": "system/base/System/favicon.TN.jpg"
+    "url": "system/base/System/favicon.TN.jpg",
+    "hash": "sha256-86EDBA329848578E3774EC6C4B286960941B43F47E486E324624589DAA0CBA65"
   },
   {
-    "hash": "sha256-0DBA506AAEBC6526F92283E8B0112B33541605FB1B4F1A49AA15344448BAC0FE",
-    "url": "system/base/System/icon-192.png"
+    "url": "system/base/System/icon-192.png",
+    "hash": "sha256-0DBA506AAEBC6526F92283E8B0112B33541605FB1B4F1A49AA15344448BAC0FE"
   },
   {
-    "hash": "sha256-AAAAE9192744292E2E89FDB42E67CB5225B3AFA8971F20669884F31B04ECF445",
-    "url": "system/base/System/icon-192.TN.jpg"
+    "url": "system/base/System/icon-192.TN.jpg",
+    "hash": "sha256-AAAAE9192744292E2E89FDB42E67CB5225B3AFA8971F20669884F31B04ECF445"
   },
   {
-    "hash": "sha256-A04A3A77E2AA5F97E3C5389993FC3D341DCC8B4FB2712E722F008AC2BE0891B0",
-    "url": "system/base/System/icon-512.png"
+    "url": "system/base/System/icon-512.png",
+    "hash": "sha256-A04A3A77E2AA5F97E3C5389993FC3D341DCC8B4FB2712E722F008AC2BE0891B0"
   },
   {
-    "hash": "sha256-2D8797BF0C257525C11A3CD093D476BBB9236EA0C457A094BC6E2D304F519B29",
-    "url": "system/base/System/icon-512.TN.jpg"
+    "url": "system/base/System/icon-512.TN.jpg",
+    "hash": "sha256-2D8797BF0C257525C11A3CD093D476BBB9236EA0C457A094BC6E2D304F519B29"
   }
 ]
