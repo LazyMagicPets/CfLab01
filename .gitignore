@@ -1,0 +1,26 @@
+# Ignore systemconfig.yaml in root directory only
+/systemconfig.yaml
+
+# Common files to ignore
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# PowerShell
+*.ps1.log
+
+# Build outputs
+bin/
+obj/
+dist/
+build/ 
