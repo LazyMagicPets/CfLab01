@@ -39,13 +39,6 @@ function Remove-SystemResourcesAws {
             --profile $ProfileName 2>&1
 
         if ($LASTEXITCODE -eq 0) {
-            # Confirm deletion
-            $confirmation = Read-Host "Are you sure you want to delete the DynamoDB table '$TableName'? This action cannot be undone. (y/n)"
-            if ($confirmation -ne 'y') {
-                Write-Host "Operation cancelled by user." -ForegroundColor Yellow
-                return $false
-            }
-
             # Delete the table
             Write-Host "Deleting DynamoDB table..." -ForegroundColor Yellow
             $result = aws dynamodb delete-table `
@@ -59,7 +52,7 @@ function Remove-SystemResourcesAws {
 
             # Wait for deletion to complete
             Write-Host "Waiting for table deletion to complete..." -ForegroundColor Yellow
-            $maxAttempts = 10  # 5 minutes with 30 second intervals
+            $maxAttempts = 3  # 30 seconds with 10 second intervals
             $attempt = 0
             
             while ($attempt -lt $maxAttempts) {
@@ -75,13 +68,13 @@ function Remove-SystemResourcesAws {
                     }
                 }
                 
-                Write-Host "Table deletion in progress... (attempt $($attempt + 1) of $maxAttempts)" -ForegroundColor Yellow
+                Write-Host "Table deletion in progress... (attempt $($attempt + 1))" -ForegroundColor Yellow
                 Start-Sleep -Seconds 30
                 $attempt++
             }
 
             if ($attempt -eq $maxAttempts) {
-                throw "Table deletion timed out after 5 minutes. Check AWS console for details."
+                throw "Table deletion timed out after 30 seconds. Check AWS console for details."
             }
         } else {
             Write-Host "DynamoDB table does not exist. Nothing to remove." -ForegroundColor Yellow

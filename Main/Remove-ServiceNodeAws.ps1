@@ -48,16 +48,6 @@ Hints:
         Write-Host "Using profile: $ProfileName" -ForegroundColor Yellow
         Write-Host "Using region: $Region" -ForegroundColor Yellow
 
-        # Confirm deletion
-        $confirmation = Read-Host "Are you sure you want to delete the stack '$StackName'? This action cannot be undone. (y/n)"
-        if ($confirmation -ne 'y') {
-            Write-Host "Operation cancelled by user." -ForegroundColor Yellow
-            return $false
-        }
-
-        # Remove the service stack with verbose output
-        Write-Host "Starting stack deletion operation (this may take a few minutes)..." -ForegroundColor Yellow
-        
         # First check if stack exists
         Write-Host "Checking if stack exists..." -ForegroundColor Yellow
         $stackStatus = aws cloudformation describe-stacks `
@@ -102,7 +92,7 @@ Hints:
                 }
             }
             
-            Write-Host "Stack deletion in progress... (attempt $($attempt + 1) of $maxAttempts)" -ForegroundColor Yellow
+            Write-Host "Stack deletion in progress... (attempt $($attempt + 1))" -ForegroundColor Yellow
             Start-Sleep -Seconds 30
             $attempt++
         }
