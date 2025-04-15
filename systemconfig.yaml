@@ -19,7 +19,7 @@ AdminEmail: "tmay+cflab-00@inscico.com"
 # middle section to get a unique SystemSuffix.
 # Needs to be lowercase alphanumeric. Keep it to 9 characters 
 # to avoid generating S3 bucket names that are too long.
-SystemSuffix: "496a-bd90"
+SystemSuffix: "4e62-a9a4"
 
 # SystemKey is a prefix ensuring AWS resource names are unique
 # within an AWS account when multiple systems are deployed. 
