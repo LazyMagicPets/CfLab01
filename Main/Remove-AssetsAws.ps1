@@ -32,8 +32,14 @@ function Remove-AssetsAws {
 
         # Remove system assets
         $BucketName = $Config.SystemKey + "---assets-" + $Config.SystemSuffix
-        Write-Host "Removing system assets from bucket: $BucketName using profile: $ProfileName"
-        Remove-LzAwsS3Bucket -BucketName $BucketName -Region $Region -Account $Account -ProfileName $ProfileName
+        Write-Host "Checking if system assets bucket exists: $BucketName"
+        $bucketExists = aws s3api head-bucket --bucket $BucketName --region $Region --profile $ProfileName 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Removing system assets from bucket: $BucketName using profile: $ProfileName"
+            Remove-LzAwsS3Bucket -BucketName $BucketName -Region $Region -Account $Account -ProfileName $ProfileName
+        } else {
+            Write-Host "System assets bucket does not exist, skipping removal"
+        }
 
         # Remove tenant assets
         Write-Host "Processing tenant configurations..."
@@ -99,8 +105,14 @@ Domain: $Domain
                     }
 
                     $BucketName = Get-AssetName $KvsEntry $Behavior $false
-                    Write-Host "Removing tenant assets for project: $TenancyProject from bucket: $BucketName using profile: $ProfileName"
-                    Remove-LzAwsS3Bucket -BucketName $BucketName -Region $Region -Account $Account -ProfileName $ProfileName
+                    Write-Host "Checking if tenant assets bucket exists: $BucketName"
+                    $bucketExists = aws s3api head-bucket --bucket $BucketName --region $Region --profile $ProfileName 2>$null
+                    if ($LASTEXITCODE -eq 0) {
+                        Write-Host "Removing tenant assets for project: $TenancyProject from bucket: $BucketName using profile: $ProfileName"
+                        Remove-LzAwsS3Bucket -BucketName $BucketName -Region $Region -Account $Account -ProfileName $ProfileName
+                    } else {
+                        Write-Host "Tenant assets bucket does not exist, skipping removal"
+                    }
                 }
             }
         }

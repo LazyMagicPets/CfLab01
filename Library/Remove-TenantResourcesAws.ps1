@@ -91,7 +91,11 @@ Hints:
                 }
             }
             catch {
-                if ($_.Exception.Message -notlike "*ResourceNotFoundException*") {
+                if ($_.Exception.Message -like "*ResourceNotFoundException*") {
+                    Write-Host "Table $TableName does not exist (already deleted)" -ForegroundColor Green
+                    continue
+                }
+                else {
                     throw
                 }
             }
@@ -135,12 +139,10 @@ Hints:
                     Write-Host "Timeout waiting for table deletion: $TableName" -ForegroundColor Red
                 }
             }
-            else {
-                Write-Host "Table $TableName does not exist (already deleted)" -ForegroundColor Green
-            }
         }
         catch {
-            Write-Host "Error deleting DynamoDB table $TableName $($_.Exception.Message)" -ForegroundColor Red
+            Write-Host "Error deleting DynamoDB table $TableName" -ForegroundColor Red
+            Write-Host "Error details: $($_.Exception.Message)" -ForegroundColor Red
         }
     }
 
