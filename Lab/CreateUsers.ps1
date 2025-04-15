@@ -122,7 +122,7 @@ function New-CfLabUsers {
 
         try {
             $userNumber = $nextUserNumber.ToString("00")
-            $username = "cflabuser-$userNumber"
+            $username = "cflab$userNumber"
             $displayName = $username
             $accountId = aws organizations list-accounts --query "Accounts[?Name=='CFlab-$userNumber'].Id" --output text --profile $ProfileName
 

@@ -68,6 +68,11 @@ function Deploy-FullSetupAws {
     Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
     Start-Sleep -Seconds 30
 
+    Write-Host "Deploying MyApp..." -ForegroundColor Yellow
+    Deploy-WebappSimpleAws -ProjectFolder "MyApp"
+    Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
+    Start-Sleep -Seconds 30
+
     # 6. Deploy Assets
     Write-Host "`nDeploying System and Tenant Assets..." -ForegroundColor Yellow
     Deploy-AssetsAws
