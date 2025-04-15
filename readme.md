@@ -260,7 +260,7 @@ MagicPets PlayFunction says hello!
 
 ## Section 5 - Examine CloudWatch log activity
 1. Back in the AWS Dashboard, navigate to the CloudWatch service
-2. Make sure you have the N.Virgina (us-west-2) region selected
+2. Make sure you have the N.Virginia (us-east-1) region selected
 3. Click on `Log groups` in the menu
 4. Click on the `aws/cloudfront/function/MyFunction` log group
 5. Click on the newest log stream
