@@ -11,7 +11,7 @@
 # used in the AWS CloudFormation templates to send a Tenant User Pool
 # invitation to the Administrator user.
 AdminAuth: "TenantAuth" # This is the name of the Authentication to create the Administrator user in
-AdminEmail: "tmay+cflab-00@inscico.com"
+AdminEmail: "tmay+cflab-01@inscico.com"
 
 
 # SystemSuffix is a short random string used to ensure uniqueness of 
@@ -37,11 +37,11 @@ Environment: 'dev'
 # Profile is the name of the AWS profile used to deploy the system. We recommend 
 # you use use profile names that use a SystemKey-Environment pattern.
 # Profiles generally use AWS SSO to authenticate.
-Profile: "cflab-00"
+Profile: "cflab-01"
 Region: "us-west-2"
 
 # DefaultTenancy is the default tenancy for development
-DefaultTenant: "uptown.cflab00.click"
+DefaultTenant: "uptown.cflab01.click"
 
 # Behaviors 
 # Behaviors define the routing rules for system requests. 
@@ -82,9 +82,9 @@ Tenants:
     # RootDomain, HostedZoneId, and AcmCertificateArn are required for each tenant 
     # and you use the AWS Console to create the hosted zone and certificate. You 
     # may also use the AWS Console to purchase a domain name.
-    RootDomain: "cflab00.click" # Each Tenant has it's own domain. 
-    HostedZoneId: "Z0151822M5K3IUHAT7OE" # Provide the AWS hosted zone id for the tenant domain
-    AcmCertificateArn: "arn:aws:acm:us-east-1:471303021085:certificate/9844b227-b96d-49fe-a107-49681b27f4f5" # AWS certificate for tenant domain
+    RootDomain: "cflab01.click" # Each Tenant has it's own domain. 
+    HostedZoneId: "Z04583793E0NOV7CNULQU" # Provide the AWS hosted zone id for the tenant domain
+    AcmCertificateArn: "arn:aws:acm:us-east-1:441464447075:certificate/e6e39551-52c3-4ef1-a988-079c6c0ea23c" # AWS certificate for tenant domain
 
     # Tenant Behaviors define the routing rules for tenant requests. 
     # They have the same properties as the system level behaviors.
