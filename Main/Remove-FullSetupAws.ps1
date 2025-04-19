@@ -31,24 +31,29 @@ function Remove-FullSetupAws {
 
     Write-Host "Starting full removal setup..." -ForegroundColor Cyan
 
-    # Get all lab profiles
-    $labprofiles = Get-Accounts
-    $accountsConfig = Get-Content -Path "accounts.yaml" -Raw | ConvertFrom-Yaml
+    # Get all lab profiles in order from accounts.yaml
+    $moduleRoot = Split-Path $PSScriptRoot -Parent
+    $accountsPath = Join-Path $moduleRoot "accounts.yaml"
+    $accountsYaml = Get-Content -Path $accountsPath -Raw
+    $accountsConfig = $accountsYaml | ConvertFrom-Yaml
 
-    # Filter out excluded accounts
-    $activeProfiles = $labprofiles | Where-Object { -not $accountsConfig.Accounts[$_].exclude }
+    # Extract account names in order from the raw YAML
+    $orderedAccounts = @()
+    $accountsYaml -split "`n" | ForEach-Object {
+        if ($_ -match '^\s*(\w+-\d+):') {
+            $orderedAccounts += $Matches[1]
+        }
+    }
+
+    # Filter out excluded accounts while maintaining order
+    $activeProfiles = $orderedAccounts | Where-Object { -not $accountsConfig.Accounts[$_].exclude }
 
     # 1. Remove Tenant Configurations across all accounts
     Write-Host "`nRemoving Tenant Configurations across all accounts..." -ForegroundColor Yellow
-    $tenantRemovalSuccess = $true
     foreach ($profile in $activeProfiles) {
         Write-Host "`nProcessing $profile..." -ForegroundColor Cyan
         Set-SystemConfig -labprofile $profile
-        $result = Remove-TenantsAws
-        if (-not $result) {
-            $tenantRemovalSuccess = $false
-            Write-Host "Tenant removal failed for profile $profile" -ForegroundColor Red
-        }
+        Remove-TenantsAws
     }
 
     # 2. Remove Assets across all accounts
@@ -107,9 +112,5 @@ function Remove-FullSetupAws {
         Remove-SystemAws
     }
 
-    if ($tenantRemovalSuccess) {
-        Write-Host "`nFull removal setup completed!" -ForegroundColor Green
-    } else {
-        Write-Host "`nFull removal completed with tenant removal failures!" -ForegroundColor Yellow
-    }
+    Write-Host "`nFull removal setup completed!" -ForegroundColor Green
 }

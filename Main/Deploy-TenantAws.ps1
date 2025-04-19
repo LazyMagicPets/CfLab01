@@ -108,7 +108,7 @@ Hints:
         --parameter-overrides $Parameters `
         --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND `
         --region $Region `
-        --profile $ProfileName 2>&1
+        --profile $ProfileName 2>&1 &
 
         $exitCode = $LASTEXITCODE
         if ($exitCode -ne 0) {

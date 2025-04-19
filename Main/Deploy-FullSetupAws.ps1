@@ -32,12 +32,22 @@ function Deploy-FullSetupAws {
 
     Write-Host "Starting full deployment setup..." -ForegroundColor Cyan
 
-    # Get all lab profiles
-    $labprofiles = Get-Accounts
-    $accountsConfig = Get-Content -Path "accounts.yaml" -Raw | ConvertFrom-Yaml
+    # Get all lab profiles in order from accounts.yaml
+    $moduleRoot = Split-Path $PSScriptRoot -Parent
+    $accountsPath = Join-Path $moduleRoot "accounts.yaml"
+    $accountsYaml = Get-Content -Path $accountsPath -Raw
+    $accountsConfig = $accountsYaml | ConvertFrom-Yaml
 
-    # Filter out excluded accounts
-    $activeProfiles = $labprofiles | Where-Object { -not $accountsConfig.Accounts[$_].exclude }
+    # Extract account names in order from the raw YAML
+    $orderedAccounts = @()
+    $accountsYaml -split "`n" | ForEach-Object {
+        if ($_ -match '^\s*(\w+-\d+):') {
+            $orderedAccounts += $Matches[1]
+        }
+    }
+
+    # Filter out excluded accounts while maintaining order
+    $activeProfiles = $orderedAccounts | Where-Object { -not $accountsConfig.Accounts[$_].exclude }
 
     # 1. Deploy System Infrastructure across all accounts
     Write-Host "`nDeploying System Infrastructure across all accounts..." -ForegroundColor Yellow

@@ -33,5 +33,40 @@ function Deploy-CfLab01FullSetupAws {
         [string]$labprofile
     )
 
-    Deploy-Many -labprofile $labprofile -Function Deploy-FullSetupAws
+    # Get all lab profiles in order from accounts.yaml
+    $moduleRoot = Split-Path $PSScriptRoot -Parent
+    $accountsPath = Join-Path $moduleRoot "accounts.yaml"
+    $accountsYaml = Get-Content -Path $accountsPath -Raw
+    $accountsConfig = $accountsYaml | ConvertFrom-Yaml
+
+    # Extract account names in order from the raw YAML
+    $orderedAccounts = @()
+    $accountsYaml -split "`n" | ForEach-Object {
+        if ($_ -match '^\s*(\w+-\d+):') {
+            $orderedAccounts += $Matches[1]
+        }
+    }
+
+    # Filter out excluded accounts while maintaining order
+    $activeProfiles = $orderedAccounts | Where-Object { -not $accountsConfig.Accounts[$_].exclude }
+
+    if ($labprofile -eq "all") {
+        # Call the full setup function directly - it will handle the looping
+        Deploy-FullSetupAws
+    } else {
+        # Validate the specified profile exists
+        if ($orderedAccounts -notcontains $labprofile) {
+            throw "Lab profile '$labprofile' not found in accounts.yaml"
+        }
+
+        # Skip if excluded
+        if ($accountsConfig.Accounts[$labprofile].exclude) {
+            Write-Host "Skipping $labprofile (excluded in accounts.yaml)" -ForegroundColor Yellow
+            return
+        }
+
+        # Set the config for this profile and call the full setup
+        Set-SystemConfig -labprofile $labprofile
+        Deploy-FullSetupAws
+    }
 }

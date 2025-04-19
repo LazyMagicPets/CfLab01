@@ -12,10 +12,18 @@ function Get-Accounts {
         throw "Accounts file not found: $accountsPath"
     }
 
-    # Read and parse the YAML
-    $accountsYaml = Get-Content -Path $accountsPath | ConvertFrom-Yaml
+    # Read the raw YAML content
+    $accountsYaml = Get-Content -Path $accountsPath -Raw
 
-    # Return the account names (keys from the Accounts section)
-    return $accountsYaml.Accounts.Keys
+    # Extract account names in order from the raw YAML
+    $orderedAccounts = @()
+    $accountsYaml -split "`n" | ForEach-Object {
+        if ($_ -match '^\s*(\w+-\d+):') {
+            $orderedAccounts += $Matches[1]
+        }
+    }
+
+    # Return the ordered account names
+    return $orderedAccounts
 }
 
