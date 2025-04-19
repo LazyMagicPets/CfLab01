@@ -107,10 +107,12 @@ function New-CfLabUsers {
 
     # Create users and assign them to accounts
     $createdCount = 0
+    $skippedCount = 0
     foreach ($email in $EmailList) {
         # Skip if email already exists
         if ($existingEmails.ContainsKey($email)) {
             Write-Host "Skipping $email - already associated with a user"
+            $skippedCount++
             continue
         }
 
@@ -121,7 +123,8 @@ function New-CfLabUsers {
         }
 
         try {
-            $userNumber = $nextUserNumber.ToString("00")
+            # Calculate the user number based on skipped emails
+            $userNumber = ($nextUserNumber + $skippedCount).ToString("00")
             $username = "cflab$userNumber"
             $displayName = $username
             $accountId = aws organizations list-accounts --query "Accounts[?Name=='CFlab-$userNumber'].Id" --output text --profile $ProfileName

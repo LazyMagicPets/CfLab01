@@ -16,6 +16,7 @@ Accounts:
     rootdomain: "cflab01.click"
     hostedzoneid: "Z04583793E0NOV7CNULQU"
     acmcertificatearn: "arn:aws:acm:us-east-1:441464447075:certificate/e6e39551-52c3-4ef1-a988-079c6c0ea23c"
+    exclude: false
   cflab-02:
     adminemail: "tmay+cflab-02@inscico.com"
     systemsuffix: "496a-bd92"
@@ -24,6 +25,7 @@ Accounts:
     rootdomain: "cflab02.click"
     hostedzoneid: "Z01153791Z6GHERI7ETGE"
     acmcertificatearn: "arn:aws:acm:us-east-1:168155203860:certificate/22802e4a-f50a-4a9e-8e73-a18758bd1bbd"
+    exclude: false
   cflab-03:
     adminemail: "tmay+cflab-03@inscico.com"
     systemsuffix: "496a-bd93"
@@ -32,6 +34,7 @@ Accounts:
     rootdomain: "cflab03.click"
     hostedzoneid: "Z07347343F42JJU60YLHN"
     acmcertificatearn: "arn:aws:acm:us-east-1:489449992615:certificate/dcf08bbc-9125-4e06-9565-9817f42009d5"
+    exclude: false
   cflab-04:
     adminemail: "tmay+cflab-04@inscico.com"
     systemsuffix: "496a-bd94"
@@ -40,6 +43,7 @@ Accounts:
     rootdomain: "cflab04.click"
     hostedzoneid: "Z08407163D4UET10UDJA1"
     acmcertificatearn: "arn:aws:acm:us-east-1:756072780467:certificate/6887fe22-90f4-4f77-9e6d-c087ecb27b7f"
+    exclude: true
   cflab-05:
     adminemail: "tmay+cflab-05@inscico.com"
     systemsuffix: "496a-bd95"
@@ -48,6 +52,7 @@ Accounts:
     rootdomain: "cflab05.click"
     hostedzoneid: "Z08631842JWSSCZH71GXN"
     acmcertificatearn: "arn:aws:acm:us-east-1:862292239950:certificate/e3a37e44-7e97-4127-b9a6-d191453093f0"
+    exclude: true
   cflab-06:
     adminemail: "tmay+cflab-06@inscico.com"
     systemsuffix: "496a-bd96"
@@ -56,6 +61,7 @@ Accounts:
     rootdomain: "cflab06.click"
     hostedzoneid: "Z08635901DXJ73U56DVM9"
     acmcertificatearn: "arn:aws:acm:us-east-1:023704515913:certificate/dc0b57c9-c8dd-4f74-91e1-805a28e7ff0a"
+    exclude: true
   cflab-07:
     adminemail: "tmay+cflab-07@inscico.com"
     systemsuffix: "496a-bd97"
@@ -64,6 +70,7 @@ Accounts:
     rootdomain: "cflab07.click"
     hostedzoneid: "Z08414381XHH9HHJFMIKV"
     acmcertificatearn: "arn:aws:acm:us-east-1:144791545980:certificate/c2791f0a-8e3a-43af-ad14-50b1cadc4d54"
+    exclude: true
   cflab-08:
     adminemail: "tmay+cflab-08@inscico.com"
     systemsuffix: "496a-bd98"
@@ -72,6 +79,7 @@ Accounts:
     rootdomain: "cflab08.click"
     hostedzoneid: "Z00632261KQM28OOWQR4L"
     acmcertificatearn: "arn:aws:acm:us-east-1:870189691067:certificate/1fd27725-1ed7-47c4-8e79-537f023832d9"
+    exclude: true
   cflab-09:
     adminemail: "tmay+cflab-09@inscico.com"
     systemsuffix: "496a-bd99"
@@ -80,6 +88,7 @@ Accounts:
     rootdomain: "cflab09.click"
     hostedzoneid: "Z014330711YZM5S2MANO1"
     acmcertificatearn: "arn:aws:acm:us-east-1:450060085903:certificate/0a7f10df-4738-4728-9ac7-1f2fcb58c113"
+    exclude: true
   cflab-10:
     adminemail: "tmay+cflab-10@inscico.com"
     systemsuffix: "496a-bd10"
@@ -88,6 +97,7 @@ Accounts:
     rootdomain: "cflab10.click"
     hostedzoneid: "Z01413872WTMCLYEMBHF7"
     acmcertificatearn: "arn:aws:acm:us-east-1:506776019602:certificate/b072b5a8-d0b8-486d-9847-8082cc24d875"
+    exclude: true
   cflab-11:
     adminemail: "tmay+cflab-11@inscico.com"
     systemsuffix: "496a-bd11"
@@ -96,6 +106,7 @@ Accounts:
     rootdomain: "cflab11.click"
     hostedzoneid: "Z08678462GV3J5IVO21BA"
     acmcertificatearn: "arn:aws:acm:us-east-1:794210789452:certificate/16b13090-3cba-41c9-afae-2516fba15dc2"
+    exclude: true
   cflab-12:
     adminemail: "tmay+cflab-12@inscico.com"
     systemsuffix: "496a-bd12"
@@ -104,6 +115,7 @@ Accounts:
     rootdomain: "cflab12.click"
     hostedzoneid: "Z07229492P7B2U4UWTS9W"
     acmcertificatearn: "arn:aws:acm:us-east-1:307096767648:certificate/3f2a32a3-b288-49ee-bde0-3a7f2e136bdf"
+    exclude: true
   cflab-13:
     adminemail: "tmay+cflab-13@inscico.com"
     systemsuffix: "496a-bd13"
@@ -112,6 +124,7 @@ Accounts:
     rootdomain: "cflab13.click"
     hostedzoneid: "Z0862751GJ38FSSI4DZ8"
     acmcertificatearn: "arn:aws:acm:us-east-1:122007303408:certificate/5c2336aa-7bbe-4a48-9b74-d2e551590281"
+    exclude: true
   cflab-14:
     adminemail: "tmay+cflab-14@inscico.com"
     systemsuffix: "496a-bd14"
@@ -120,6 +133,7 @@ Accounts:
     rootdomain: "cflab14.click"
     hostedzoneid: "Z0061941K1BKB0QXR3WQ"
     acmcertificatearn: "arn:aws:acm:us-east-1:578479667521:certificate/8a9f5893-d7e5-4b17-a370-681487f11163"
+    exclude: true
   cflab-15:
     adminemail: "tmay+cflab-15@inscico.com"
     systemsuffix: "496a-bd15"
@@ -128,6 +142,7 @@ Accounts:
     rootdomain: "cflab15.click"
     hostedzoneid: "Z08673661Q2BXJDEU923I"
     acmcertificatearn: "arn:aws:acm:us-east-1:916566265460:certificate/30343f19-c18d-48c7-8529-15169dd85195"
+    exclude: true
   cflab-16:
     adminemail: "tmay+cflab-16@inscico.com"
     systemsuffix: "496a-bd16"
@@ -136,6 +151,7 @@ Accounts:
     rootdomain: "cflab16.click"
     hostedzoneid: "Z00616286O6KOB2OUTQX"
     acmcertificatearn: "arn:aws:acm:us-east-1:636985938277:certificate/1e8b3e0d-c12c-4f7d-9a58-344959089ad8"
+    exclude: true
   cflab-17:
     adminemail: "tmay+cflab-17@inscico.com"
     systemsuffix: "496a-bd17"
@@ -144,6 +160,7 @@ Accounts:
     rootdomain: "cflab17.click"
     hostedzoneid: "Z00625592LND3BHDVU2P7"
     acmcertificatearn: "arn:aws:acm:us-east-1:782815632583:certificate/4d9a1123-6022-49fe-b9e8-7c2c4eb00004"
+    exclude: true
   cflab-18:
     adminemail: "tmay+cflab-18@inscico.com"
     systemsuffix: "496a-bd18"
@@ -152,6 +169,7 @@ Accounts:
     rootdomain: "cflab18.click"
     hostedzoneid: "Z0052767311I4I7GWIUHL"
     acmcertificatearn: "arn:aws:acm:us-east-1:184644494006:certificate/2fb61216-2ddb-46f7-86df-8f508291a327"
+    exclude: true
   cflab-19:
     adminemail: "tmay+cflab-19@inscico.com"
     systemsuffix: "496a-bd19"
@@ -160,6 +178,7 @@ Accounts:
     rootdomain: "cflab19.click"
     hostedzoneid: "Z08610512XMBV66TS8ET0"
     acmcertificatearn: "arn:aws:acm:us-east-1:095720161475:certificate/68ee0119-8a64-4641-b71e-cc334d36239c"
+    exclude: true
   cflab-20:
     adminemail: "tmay+cflab-20@inscico.com"
     systemsuffix: "496a-bd20"
@@ -168,3 +187,4 @@ Accounts:
     rootdomain: "cflab20.click"
     hostedzoneid: "Z07290575ISDJF80TDKS"
     acmcertificatearn: "arn:aws:acm:us-east-1:992715188138:certificate/a71a2f21-d317-4f2e-96ad-5a7a36fedc73"
+    exclude: true

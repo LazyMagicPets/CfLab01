@@ -9,14 +9,22 @@ function Deploy-Many {
         [hashtable]$Arguments = @{}
     )
 
-    # Get all lab profiles
-    $labprofiles = Get-Accounts
+    # Get all lab profiles in order from accounts.yaml
+    $moduleRoot = Split-Path $PSScriptRoot -Parent
+    $accountsPath = Join-Path $moduleRoot "accounts.yaml"
+    $accountsYaml = Get-Content -Path $accountsPath -Raw
+    $accountsConfig = $accountsYaml | ConvertFrom-Yaml
 
-    # Get account configuration
-    $accountsConfig = Get-Content -Path "accounts.yaml" -Raw | ConvertFrom-Yaml
+    # Extract account names in order from the raw YAML
+    $orderedAccounts = @()
+    $accountsYaml -split "`n" | ForEach-Object {
+        if ($_ -match '^\s*(\w+-\d+):') {
+            $orderedAccounts += $Matches[1]
+        }
+    }
 
     if ($labprofile -eq "all") {
-        foreach ($labprofileItem in $labprofiles) {
+        foreach ($labprofileItem in $orderedAccounts) {
             # Skip if excluded
             if ($accountsConfig.Accounts[$labprofileItem].exclude) {
                 Write-Host "Skipping $labprofileItem (excluded in accounts.yaml)" -ForegroundColor Yellow
@@ -29,7 +37,7 @@ function Deploy-Many {
         }
     } else {
         # Validate the specified profile exists
-        if ($labprofiles -notcontains $labprofile) {
+        if ($orderedAccounts -notcontains $labprofile) {
             throw "Lab profile '$labprofile' not found in accounts.yaml"
         }
 

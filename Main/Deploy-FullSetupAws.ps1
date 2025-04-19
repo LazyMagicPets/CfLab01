@@ -32,56 +32,76 @@ function Deploy-FullSetupAws {
 
     Write-Host "Starting full deployment setup..." -ForegroundColor Cyan
 
-    # 1. Deploy System Infrastructure
-    Write-Host "`nDeploying System Infrastructure..." -ForegroundColor Yellow
-    Deploy-SystemAws
-    Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 30
+    # Get all lab profiles
+    $labprofiles = Get-Accounts
+    $accountsConfig = Get-Content -Path "accounts.yaml" -Raw | ConvertFrom-Yaml
 
-    # 2. Deploy Authentication Configurations
-    Write-Host "`nDeploying Authentication Configurations..." -ForegroundColor Yellow
-    Deploy-AuthsAws
-    Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 30
+    # Filter out excluded accounts
+    $activeProfiles = $labprofiles | Where-Object { -not $accountsConfig.Accounts[$_].exclude }
 
-    # 3. Deploy IAM Policies
-    Write-Host "`nDeploying IAM Policies..." -ForegroundColor Yellow
-    Deploy-PoliciesAws
-    Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 30
+    # 1. Deploy System Infrastructure across all accounts
+    Write-Host "`nDeploying System Infrastructure across all accounts..." -ForegroundColor Yellow
+    foreach ($profile in $activeProfiles) {
+        Write-Host "`nProcessing $profile..." -ForegroundColor Cyan
+        Set-SystemConfig -labprofile $profile
+        Deploy-SystemAws
+    }
 
-    # 4. Deploy Service Infrastructure
-    Write-Host "`nDeploying Service Infrastructure..." -ForegroundColor Yellow
-    Deploy-ServiceNodeAws
-    Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 30
+    # 2. Deploy Authentication Configurations across all accounts
+    Write-Host "`nDeploying Authentication Configurations across all accounts..." -ForegroundColor Yellow
+    foreach ($profile in $activeProfiles) {
+        Write-Host "`nProcessing $profile..." -ForegroundColor Cyan
+        Set-SystemConfig -labprofile $profile
+        Deploy-AuthsAws
+    }
 
-    # 5. Deploy Web Applications
-    Write-Host "`nDeploying Web Applications..." -ForegroundColor Yellow
-    Write-Host "Deploying AdminApp..." -ForegroundColor Yellow
-    Deploy-WebappSimpleAws -ProjectFolder "AdminApp"
-    Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 30
-    
-    Write-Host "Deploying StoreApp..." -ForegroundColor Yellow
-    Deploy-WebappSimpleAws -ProjectFolder "StoreApp"
-    Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 30
+    # 3. Deploy IAM Policies across all accounts
+    Write-Host "`nDeploying IAM Policies across all accounts..." -ForegroundColor Yellow
+    foreach ($profile in $activeProfiles) {
+        Write-Host "`nProcessing $profile..." -ForegroundColor Cyan
+        Set-SystemConfig -labprofile $profile
+        Deploy-PoliciesAws
+    }
 
-    Write-Host "Deploying MyApp..." -ForegroundColor Yellow
-    Deploy-WebappSimpleAws -ProjectFolder "MyApp"
-    Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 30
+    # 4. Deploy Service Infrastructure across all accounts
+    Write-Host "`nDeploying Service Infrastructure across all accounts..." -ForegroundColor Yellow
+    foreach ($profile in $activeProfiles) {
+        Write-Host "`nProcessing $profile..." -ForegroundColor Cyan
+        Set-SystemConfig -labprofile $profile
+        Deploy-ServiceNodeAws
+    }
 
-    # 6. Deploy Assets
-    Write-Host "`nDeploying System and Tenant Assets..." -ForegroundColor Yellow
-    Deploy-AssetsAws
-    Write-Host "Waiting 30 seconds for resources to initialize..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 30
+    # 5. Deploy Web Applications across all accounts
+    Write-Host "`nDeploying Web Applications across all accounts..." -ForegroundColor Yellow
+    foreach ($profile in $activeProfiles) {
+        Write-Host "`nProcessing $profile..." -ForegroundColor Cyan
+        Set-SystemConfig -labprofile $profile
+        
+        Write-Host "Deploying AdminApp..." -ForegroundColor Yellow
+        Deploy-WebappSimpleAws -ProjectFolder "AdminApp"
+        
+        Write-Host "Deploying StoreApp..." -ForegroundColor Yellow
+        Deploy-WebappSimpleAws -ProjectFolder "StoreApp"
+        
+        Write-Host "Deploying MyApp..." -ForegroundColor Yellow
+        Deploy-WebappSimpleAws -ProjectFolder "MyApp"
+    }
 
-    # 7. Deploy Tenant Configurations
-    Write-Host "`nDeploying Tenant Configurations..." -ForegroundColor Yellow
-    Deploy-TenantsAws
+    # 6. Deploy Assets across all accounts
+    Write-Host "`nDeploying System and Tenant Assets across all accounts..." -ForegroundColor Yellow
+    foreach ($profile in $activeProfiles) {
+        Write-Host "`nProcessing $profile..." -ForegroundColor Cyan
+        Set-SystemConfig -labprofile $profile
+        Deploy-AssetsAws
+    }
+
+    # 7. Deploy Tenant Configurations across all accounts
+    Write-Host "`nDeploying Tenant Configurations across all accounts..." -ForegroundColor Yellow
+    foreach ($profile in $activeProfiles) {
+        Write-Host "`nProcessing $profile..." -ForegroundColor Cyan
+        Set-SystemConfig -labprofile $profile
+        Deploy-TenantsAws
+    }
 
     Write-Host "`nFull deployment setup completed!" -ForegroundColor Green
 }
