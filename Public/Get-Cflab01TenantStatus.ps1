@@ -41,54 +41,7 @@ function Get-Cflab01TenantStatus {
         foreach ($profile in $activeProfiles) {
             Write-Host "`nChecking $profile..." -ForegroundColor Cyan
             Set-SystemConfig -labprofile $profile
-            $status = Get-TenantStatus
-            
-            if ($status) {
-                # Display status with appropriate color
-                switch ($status.Status) {
-                    "CREATE_COMPLETE" { 
-                        Write-Host "$profile returned with a status of CREATE_COMPLETE" -ForegroundColor Green
-                    }
-                    "CREATE_IN_PROGRESS" { 
-                        Write-Host "$profile returned with a status of CREATE_IN_PROGRESS" -ForegroundColor Yellow
-                    }
-                    "CREATE_FAILED" { 
-                        Write-Host "$profile returned with a status of CREATE_FAILED" -ForegroundColor Red
-                    }
-                    "UPDATE_COMPLETE" { 
-                        Write-Host "$profile returned with a status of UPDATE_COMPLETE" -ForegroundColor Green
-                    }
-                    "UPDATE_IN_PROGRESS" { 
-                        Write-Host "$profile returned with a status of UPDATE_IN_PROGRESS" -ForegroundColor Yellow
-                    }
-                    "UPDATE_FAILED" { 
-                        Write-Host "$profile returned with a status of UPDATE_FAILED" -ForegroundColor Red
-                    }
-                    "DELETE_COMPLETE" { 
-                        Write-Host "$profile returned with a status of DELETE_COMPLETE" -ForegroundColor Green
-                    }
-                    "DELETE_IN_PROGRESS" { 
-                        Write-Host "$profile returned with a status of DELETE_IN_PROGRESS" -ForegroundColor Yellow
-                    }
-                    "DELETE_FAILED" { 
-                        Write-Host "$profile returned with a status of DELETE_FAILED" -ForegroundColor Red
-                    }
-                    "ROLLBACK_COMPLETE" { 
-                        Write-Host "$profile returned with a status of ROLLBACK_COMPLETE" -ForegroundColor Red
-                    }
-                    "ROLLBACK_IN_PROGRESS" { 
-                        Write-Host "$profile returned with a status of ROLLBACK_IN_PROGRESS" -ForegroundColor Yellow
-                    }
-                    "ROLLBACK_FAILED" { 
-                        Write-Host "$profile returned with a status of ROLLBACK_FAILED" -ForegroundColor Red
-                    }
-                    default { 
-                        Write-Host "$profile returned with a status of $($status.Status)" -ForegroundColor Yellow
-                    }
-                }
-            } else {
-                Write-Host "${profile}: Stack does not exist" -ForegroundColor Yellow
-            }
+            Get-TenantStatus -profile $profile
         }
     } else {
         # Validate the specified profile exists
@@ -104,53 +57,6 @@ function Get-Cflab01TenantStatus {
 
         Write-Host "`nChecking $labprofile..." -ForegroundColor Cyan
         Set-SystemConfig -labprofile $labprofile
-        $status = Get-TenantStatus
-        
-        if ($status) {
-            # Display status with appropriate color
-            switch ($status.Status) {
-                "CREATE_COMPLETE" { 
-                    Write-Host "$labprofile returned with a status of CREATE_COMPLETE" -ForegroundColor Green
-                }
-                "CREATE_IN_PROGRESS" { 
-                    Write-Host "$labprofile returned with a status of CREATE_IN_PROGRESS" -ForegroundColor Yellow
-                }
-                "CREATE_FAILED" { 
-                    Write-Host "$labprofile returned with a status of CREATE_FAILED" -ForegroundColor Red
-                }
-                "UPDATE_COMPLETE" { 
-                    Write-Host "$labprofile returned with a status of UPDATE_COMPLETE" -ForegroundColor Green
-                }
-                "UPDATE_IN_PROGRESS" { 
-                    Write-Host "$labprofile returned with a status of UPDATE_IN_PROGRESS" -ForegroundColor Yellow
-                }
-                "UPDATE_FAILED" { 
-                    Write-Host "$labprofile returned with a status of UPDATE_FAILED" -ForegroundColor Red
-                }
-                "DELETE_COMPLETE" { 
-                    Write-Host "$labprofile returned with a status of DELETE_COMPLETE" -ForegroundColor Green
-                }
-                "DELETE_IN_PROGRESS" { 
-                    Write-Host "$labprofile returned with a status of DELETE_IN_PROGRESS" -ForegroundColor Yellow
-                }
-                "DELETE_FAILED" { 
-                    Write-Host "$labprofile returned with a status of DELETE_FAILED" -ForegroundColor Red
-                }
-                "ROLLBACK_COMPLETE" { 
-                    Write-Host "$labprofile returned with a status of ROLLBACK_COMPLETE" -ForegroundColor Red
-                }
-                "ROLLBACK_IN_PROGRESS" { 
-                    Write-Host "$labprofile returned with a status of ROLLBACK_IN_PROGRESS" -ForegroundColor Yellow
-                }
-                "ROLLBACK_FAILED" { 
-                    Write-Host "$labprofile returned with a status of ROLLBACK_FAILED" -ForegroundColor Red
-                }
-                default { 
-                    Write-Host "$labprofile returned with a status of $($status.Status)" -ForegroundColor Yellow
-                }
-            }
-        } else {
-            Write-Host "${labprofile}: Stack does not exist" -ForegroundColor Yellow
-        }
+        Get-TenantStatus -profile $labprofile
     }
 } 
